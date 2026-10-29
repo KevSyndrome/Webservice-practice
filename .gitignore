@@ -1,0 +1,5 @@
+# Cada app tiene su propio .gitignore; aquí solo lo global
+.DS_Store
+.env
+.env.*
+!.env.example
