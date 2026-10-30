@@ -85,20 +85,38 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>jaxb2-maven-plugin</artifactId>
 				<version>4.2.0</version>
+				<!-- Cada ejecución con su propio directorio y staleFile para que no se pisen -->
 				<executions>
 					<execution>
-						<id>xjc</id>
+						<id>xjc-products</id>
 						<goals>
 							<goal>xjc</goal>
 						</goals>
+						<configuration>
+							<sources>
+								<source>${project.basedir}/src/main/resources/xsd/products.xsd</source>
+							</sources>
+							<packageName>com.practice.api.product.soap.v1</packageName>
+							<outputDirectory>${project.build.directory}/generated-sources/jaxb-products</outputDirectory>
+							<staleFile>${project.build.directory}/jaxb2/.products.stale</staleFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>xjc-countryinfo</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<sourceType>wsdl</sourceType>
+							<sources>
+								<source>${project.basedir}/src/main/resources/wsdl/countryinfo.wsdl</source>
+							</sources>
+							<packageName>com.practice.api.external.countryinfo</packageName>
+							<outputDirectory>${project.build.directory}/generated-sources/jaxb-countryinfo</outputDirectory>
+							<staleFile>${project.build.directory}/jaxb2/.countryinfo.stale</staleFile>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<sources>
-						<source>${project.basedir}/src/main/resources/xsd/products.xsd</source>
-					</sources>
-					<packageName>com.practice.api.product.soap.v1</packageName>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
