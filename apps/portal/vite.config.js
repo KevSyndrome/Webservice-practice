@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:8090',
       '/ws': 'http://localhost:8090',
+      '/graphql': 'http://localhost:8090',
     },
   },
 })

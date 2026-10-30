@@ -6,6 +6,8 @@
   --rule: #c5ced8;
   --rest: #1d63a6;
   --soap: #7b3a8c;
+  --graphql: #1b7f6b;
+  --grpc: #9a5a08;
   --ok: #2c7a4b;
   --fail: #b3261e;
   --sans: 'IBM Plex Sans', system-ui, sans-serif;
@@ -29,50 +31,75 @@ main {
 
 h1, h2, h3 { font-weight: 600; line-height: 1.2; margin: 0; }
 h1 { font-size: 2.75rem; letter-spacing: -0.02em; }
-h2 { font-size: 1.5rem; margin-bottom: 1rem; }
+h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
 h3 { font-size: 1.125rem; }
 
 section { margin-top: 3.5rem; }
 
-.hero p { max-width: 38rem; color: var(--muted); font-size: 1.125rem; margin: 0.75rem 0 2rem; }
+a { color: var(--protocol, var(--rest)); }
 
-/* Barras de peso: lo primero que se ve, el costo del sobre SOAP frente al JSON */
-.weight { margin: 0; max-width: 46rem; }
-.bar {
-  display: grid;
-  grid-template-columns: 3.5rem 1fr 6.5rem;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-.bar-label { font-weight: 600; }
-.bar-track { height: 1.75rem; background: var(--surface); }
-.bar-fill { display: block; height: 100%; background: var(--protocol); transition: width 400ms ease-out; }
-.bar-value { font-variant-numeric: tabular-nums; text-align: right; }
-.weight figcaption { color: var(--muted); font-size: 0.9375rem; margin-top: 0.5rem; }
-
+/* Cada protocolo tiene un color; cualquier elemento dentro de data-protocol lo hereda */
 [data-protocol='REST'] { --protocol: var(--rest); }
 [data-protocol='SOAP'] { --protocol: var(--soap); }
+[data-protocol='GraphQL'] { --protocol: var(--graphql); }
+[data-protocol='gRPC'] { --protocol: var(--grpc); }
+
+.hero p { max-width: 40rem; color: var(--muted); font-size: 1.125rem; margin: 0.75rem 0 2rem; }
+
+/* Barras de peso: lo primero que se ve, el costo de la envoltura de cada formato */
+.weight { margin: 0; max-width: 48rem; }
+.bar {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 10rem;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.625rem;
+}
+.bar-label { font-weight: 600; color: var(--protocol); }
+.bar-track { height: 1.5rem; background: var(--surface); }
+.bar-fill { display: block; height: 100%; background: var(--protocol); transition: width 400ms ease-out; }
+.bar-value { font-variant-numeric: tabular-nums; }
+.weight figcaption { color: var(--muted); font-size: 0.9375rem; margin-top: 0.5rem; }
+
+/* Cards de módulos */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1rem; margin-top: 1.25rem; }
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  background: var(--surface);
+  border-top: 4px solid var(--protocol);
+  color: var(--ink);
+  text-decoration: none;
+}
+.card p { margin: 0; color: var(--muted); font-size: 0.9375rem; flex: 1; }
+.card-meta { font-size: 0.875rem; color: var(--protocol); font-weight: 500; }
+.card:hover h3 { text-decoration: underline; text-decoration-color: var(--protocol); text-underline-offset: 3px; }
+.tag { align-self: flex-start; color: var(--surface); background: var(--protocol); font-size: 0.8125rem; font-weight: 600; padding: 0.0625rem 0.5rem; }
 
 /* Tablas */
 .scroll { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
 th, td { text-align: left; padding: 0.5rem 0.75rem 0.5rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
 thead th { font-weight: 600; border-bottom: 2px solid var(--ink); }
-tbody th { font-weight: 500; color: var(--muted); white-space: nowrap; }
+tbody th { font-weight: 500; color: var(--muted); white-space: nowrap; width: 10rem; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 
 .comparison { background: var(--surface); }
 .comparison th, .comparison td { padding: 0.75rem 1rem; }
 .comparison thead th[data-protocol] { color: var(--protocol); border-bottom-color: var(--protocol); }
-.comparison .pending { color: var(--muted); font-style: italic; }
 
-/* Paneles: el borde superior dice qué protocolo usa el servicio */
-.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
-.panel { background: var(--surface); border-top: 4px solid var(--protocol); padding: 1.25rem 1.5rem 1.5rem; min-width: 0; }
-.panel > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; margin-bottom: 1rem; }
-.panel > header code { flex-basis: 100%; color: var(--muted); font: 400 0.875rem var(--mono); }
-.tag { color: var(--surface); background: var(--protocol); font-size: 0.8125rem; font-weight: 600; padding: 0.0625rem 0.5rem; }
+/* Página de módulo */
+nav { font-size: 0.9375rem; color: var(--muted); margin-bottom: 2rem; }
+.module-header { display: flex; flex-direction: column; gap: 0.75rem; padding-bottom: 2rem; border-bottom: 4px solid var(--protocol); }
+.module-header p { margin: 0; max-width: 42rem; }
+.module-header > p:first-of-type { font-size: 1.125rem; color: var(--muted); }
+.contract code { font: 400 0.875rem var(--mono); }
+
+.operation { background: var(--surface); padding: 1.5rem; margin-top: 1.5rem; }
+.operation > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem; margin-bottom: 1rem; }
+.operation > header code { color: var(--protocol); font: 500 0.875rem var(--mono); }
 
 /* Petición / respuesta colapsables */
 .exchange { margin-top: 1.25rem; border-top: 1px solid var(--rule); }
@@ -94,14 +121,16 @@ pre {
 /* Formularios */
 form.inline { display: flex; flex-wrap: wrap; align-items: end; gap: 0.75rem 1rem; margin-bottom: 1rem; }
 label { display: grid; gap: 0.25rem; font-size: 0.875rem; color: var(--muted); }
-input, select, button { font: inherit; color: var(--ink); padding: 0.5rem 0.75rem; border: 1px solid var(--rule); background: var(--surface); }
-input[name='iso'] { width: 5rem; text-transform: uppercase; }
-button { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 500; cursor: pointer; }
-button:hover { background: var(--protocol, var(--ink)); border-color: var(--protocol, var(--ink)); }
+label.wide { flex-basis: 100%; }
+input, select, textarea, button { font: inherit; color: var(--ink); padding: 0.5rem 0.75rem; border: 1px solid var(--rule); background: var(--surface); }
+textarea { font: 400 0.875rem/1.5 var(--mono); resize: vertical; }
+button { background: var(--protocol, var(--ink)); color: var(--surface); border-color: var(--protocol, var(--ink)); font-weight: 500; cursor: pointer; }
+button:hover { background: var(--ink); border-color: var(--ink); }
+button:disabled { opacity: 0.6; cursor: progress; }
 
 :focus-visible { outline: 3px solid var(--protocol, var(--rest)); outline-offset: 2px; }
 
-.hint { color: var(--muted); font-size: 0.9375rem; margin: 0 0 1rem; }
+.hint { color: var(--muted); font-size: 0.9375rem; margin: 0 0 1rem; max-width: 46rem; }
 .error { color: var(--fail); font-weight: 500; }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -109,8 +138,9 @@ button:hover { background: var(--protocol, var(--ink)); border-color: var(--prot
 @media (max-width: 40rem) {
   main { padding-top: 2rem; }
   h1 { font-size: 2rem; }
-  .bar { grid-template-columns: 3rem 1fr 5.5rem; gap: 0.5rem; }
-  .pair { grid-template-columns: 1fr; }
+  .bar { grid-template-columns: 4rem 1fr; }
+  .bar-value { grid-column: 2; font-size: 0.875rem; }
+  .operation { padding: 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

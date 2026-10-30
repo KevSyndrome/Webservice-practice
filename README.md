@@ -4,8 +4,10 @@ Monorepo para practicar distintos tipos de webservices y sus contratos.
 
 | App | Stack | Puerto | Descripción |
 |---|---|---|---|
-| `apps/api` | Java 25 + Spring Boot 4 | 8090 | WS expuestos (REST, SOAP; luego GraphQL y gRPC) |
-| `apps/portal` | React + Vite | 5173 | Portal que consume los WS (vía proxy a la API) |
+| `apps/api` | Java 25 + Spring Boot 4.1 + SQLite | 8090 (HTTP), 9095 (gRPC) | WS propios REST, SOAP, GraphQL y gRPC, y cliente de WS externos |
+| `apps/portal` | React + Vite | 5173 | Catálogo para probar cada WS (vía proxy a la API) |
+
+Los productos se guardan en `apps/api/api.db` (SQLite, ignorado en git). Bórralo para volver a los datos iniciales.
 
 ## Arrancar
 
@@ -17,19 +19,25 @@ cd apps/api && ./mvnw spring-boot:run
 cd apps/portal && npm install && npm run dev
 ```
 
-## Contratos
+## APIs propias: productos
 
-| Tipo | Contrato | URL local |
-|---|---|---|
-| REST | OpenAPI 3 | http://localhost:8090/v3/api-docs · UI: http://localhost:8090/swagger-ui.html |
-| SOAP | WSDL + XSD | http://localhost:8090/ws/products.wsdl |
+| Tipo | Contrato | Endpoint | Operaciones |
+|---|---|---|---|
+| REST | OpenAPI 3: http://localhost:8090/swagger-ui.html | `/api/v1/products` | `GET`, `GET /{id}`, `POST` |
+| SOAP | WSDL + XSD: http://localhost:8090/ws/products.wsdl | `POST /ws` | `listProducts`, `getProduct`, `createProduct` |
+| GraphQL | `apps/api/src/main/resources/graphql/products.graphqls` · GraphiQL: http://localhost:8090/graphiql | `POST /graphql` | `products`, `product(id)`, `createProduct` |
+| gRPC | `apps/api/src/main/protobuf/products/v1/products.proto` | `localhost:9095` | `ListProducts`, `GetProduct`, `CreateProduct` |
 
-## WS externos (consumidos por la API, patrón BFF)
+El navegador no habla gRPC nativo; el portal usa el puente `/api/v1/grpc-bridge/products`, que hace la llamada gRPC real.
+
+## APIs externas (consumidas por nuestra API, patrón BFF)
 
 | Proveedor | Tipo | Contrato | Lo expone nuestra API en |
 |---|---|---|---|
-| CountryInfo (oorsprong) | SOAP | `apps/api/src/main/resources/wsdl/countryinfo.wsdl` (copia local) | `GET /api/v1/countries/{iso}` |
 | Open-Meteo | REST | JSON sin contrato formal | `GET /api/v1/weather?lat=&lon=` |
+| CountryInfo (oorsprong) | SOAP | `apps/api/src/main/resources/wsdl/countryinfo.wsdl` (copia local) | `GET /api/v1/countries/{iso}` |
+| Countries (trevorblades) | GraphQL | Esquema público, consulta en `CountriesGraphqlClient` | `GET /api/v1/graphql-countries/{iso}` |
+| grpcb.in | gRPC (TLS, 9001) | `apps/api/src/main/protobuf/grpcbin/hello.proto` (copia mínima) | `GET /api/v1/greeting?name=` |
 
 ## Flujo de trabajo y versionado
 

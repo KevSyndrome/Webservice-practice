@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import com.google.protobuf.Message;
+import com.google.protobuf.TextFormat;
 import com.practice.api.product.grpc.v1.CreateProductRequest;
 import com.practice.api.product.grpc.v1.GetProductRequest;
 import com.practice.api.product.grpc.v1.ListProductsRequest;
@@ -89,7 +90,8 @@ public class GrpcBridgeController {
 	}
 
 	private static String text(Message message) {
-		String body = message.toString().strip();
+		// Sin escapar no-ASCII: si no, "Ratón" se mostraría como "Rat\303\263n"
+		String body = TextFormat.printer().escapingNonAscii(false).printToString(message).strip();
 		String type = message.getDescriptorForType().getFullName();
 		return body.isEmpty() ? type + " {}" : type + " {\n" + body.indent(2) + "}";
 	}
