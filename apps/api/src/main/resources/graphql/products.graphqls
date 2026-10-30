@@ -1,0 +1,21 @@
+# Contrato GraphQL (schema-first). El cliente pide exactamente los campos que necesita.
+type Query {
+    products: [Product!]!
+    product(id: ID!): Product
+}
+
+type Mutation {
+    createProduct(input: NewProductInput!): Product!
+}
+
+type Product {
+    id: ID!
+    name: String!
+    "Decimal como texto para no perder centavos (GraphQL solo tiene Float)"
+    price: String!
+}
+
+input NewProductInput {
+    name: String!
+    price: String!
+}
