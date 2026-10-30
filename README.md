@@ -24,6 +24,13 @@ cd apps/portal && npm install && npm run dev
 | REST | OpenAPI 3 | http://localhost:8090/v3/api-docs · UI: http://localhost:8090/swagger-ui.html |
 | SOAP | WSDL + XSD | http://localhost:8090/ws/products.wsdl |
 
+## WS externos (consumidos por la API, patrón BFF)
+
+| Proveedor | Tipo | Contrato | Lo expone nuestra API en |
+|---|---|---|---|
+| CountryInfo (oorsprong) | SOAP | `apps/api/src/main/resources/wsdl/countryinfo.wsdl` (copia local) | `GET /api/v1/countries/{iso}` |
+| Open-Meteo | REST | JSON sin contrato formal | `GET /api/v1/weather?lat=&lon=` |
+
 ## Flujo de trabajo y versionado
 
 **Ramas (trunk-based):** `main` siempre estable. Todo cambio entra por una rama corta + Pull Request.
