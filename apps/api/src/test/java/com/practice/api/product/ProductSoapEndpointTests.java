@@ -55,6 +55,22 @@ class ProductSoapEndpointTests {
 	}
 
 	@Test
+	void createProduct() throws Exception {
+		HttpResponse<String> response = soap(
+				"<p:createProductRequest><p:name>Monitor</p:name><p:price>3999.00</p:price></p:createProductRequest>");
+		assertThat(response.statusCode()).isEqualTo(200);
+		assertThat(response.body()).contains("createProductResponse").contains("Monitor").contains("3999.00");
+	}
+
+	@Test
+	void createRejectsPayloadThatBreaksTheXsd() throws Exception {
+		HttpResponse<String> response = soap(
+				"<p:createProductRequest><p:name> </p:name><p:price>-5</p:price></p:createProductRequest>");
+		assertThat(response.statusCode()).isEqualTo(500);
+		assertThat(response.body()).contains("Fault").contains("Validation error");
+	}
+
+	@Test
 	void wsdlContractIsPublished() throws Exception {
 		HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/ws/products.wsdl")).build();
 		HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());

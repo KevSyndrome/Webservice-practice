@@ -5,9 +5,11 @@ import java.net.URI;
 import java.util.List;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +48,8 @@ public class ProductRestController {
 		return ResponseEntity.created(URI.create("/api/v1/products/" + product.id())).body(product);
 	}
 
-	public record NewProduct(@NotBlank String name, @NotNull @Positive BigDecimal price) {
+	public record NewProduct(@NotBlank @Size(max = 100) String name,
+			@NotNull @Positive @Digits(integer = 10, fraction = 2) BigDecimal price) {
 	}
 
 }

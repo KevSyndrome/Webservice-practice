@@ -1,5 +1,7 @@
 package com.practice.api.product;
 
+import com.practice.api.product.soap.v1.CreateProductRequest;
+import com.practice.api.product.soap.v1.CreateProductResponse;
 import com.practice.api.product.soap.v1.GetProductRequest;
 import com.practice.api.product.soap.v1.GetProductResponse;
 import com.practice.api.product.soap.v1.ListProductsRequest;
@@ -39,6 +41,15 @@ public class ProductSoapEndpoint {
 	public ListProductsResponse listProducts(@RequestPayload ListProductsRequest request) {
 		ListProductsResponse response = new ListProductsResponse();
 		repository.findAll().forEach(product -> response.getProduct().add(toSoap(product)));
+		return response;
+	}
+
+	// Las reglas (nombre no vacío, precio > 0) las valida el XSD antes de llegar aquí
+	@PayloadRoot(namespace = NAMESPACE, localPart = "createProductRequest")
+	@ResponsePayload
+	public CreateProductResponse createProduct(@RequestPayload CreateProductRequest request) {
+		CreateProductResponse response = new CreateProductResponse();
+		response.setProduct(toSoap(repository.save(request.getName().strip(), request.getPrice())));
 		return response;
 	}
 
