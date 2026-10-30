@@ -158,7 +158,7 @@ function Navbar({ module, online }) {
         </ul>
       </div>
       {online !== null && (
-        <span className={`badge badge-soft ${online ? 'badge-success' : 'badge-error'}`} title="Estado de la API en el puerto 8090">
+        <span className={`badge badge-soft ${online ? 'badge-success' : 'badge-error'}`} title="Estado de la API">
           <span className={`status ${online ? 'status-success' : 'status-error'}`} />
           {online ? 'API en línea' : 'API sin respuesta'}
         </span>

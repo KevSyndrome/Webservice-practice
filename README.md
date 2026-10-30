@@ -19,6 +19,27 @@ cd apps/api && ./mvnw spring-boot:run
 cd apps/portal && npm install && npm run dev
 ```
 
+## Deploy en Railway
+
+En producción es **un solo servicio**: el `Dockerfile` de la raíz compila el portal, lo mete en `static/` del jar y Spring Boot sirve todo desde el mismo dominio. `railway.json` le dice a Railway que use ese Dockerfile y revise `/api/v1/products` como healthcheck.
+
+1. En Railway: **New Project → Deploy from GitHub repo →** `KevSyndrome/Webservice-practice`.
+2. En el servicio: **Settings → Source → Branch**: `main` (cada push a `main` despliega).
+3. **Volumen** para que SQLite sobreviva a los deploys: clic derecho en el servicio → **Attach volume**, mount path `/data`.
+4. **Dominio**: **Settings → Networking → Generate Domain**, y edita el nombre (por ejemplo `webservice-practice.up.railway.app`).
+
+No hace falta definir variables: Railway inyecta `PORT` y el Dockerfile fija `DATABASE_PATH=/data/api.db`. Para ajustar memoria, define `JAVA_TOOL_OPTIONS` (por defecto `-Xmx320m -XX:+UseSerialGC`).
+
+El servidor gRPC (9095) queda interno: el portal lo usa a través del puente `/api/v1/grpc-bridge`. Para llamarlo desde fuera haría falta un TCP Proxy de Railway.
+
+Probar la imagen en local:
+
+```bash
+docker build -t webservice-practice .
+docker run --rm -p 8090:8090 -v webservice-data:/data webservice-practice
+# http://localhost:8090
+```
+
 ## APIs propias: productos
 
 | Tipo | Contrato | Endpoint | Operaciones |
