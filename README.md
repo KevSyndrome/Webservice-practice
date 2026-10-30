@@ -4,7 +4,7 @@ Monorepo para practicar distintos tipos de webservices y sus contratos.
 
 | App | Stack | Puerto | Descripción |
 |---|---|---|---|
-| `apps/api` | Java 25 + Spring Boot 4 | 8080 | WS expuestos (REST, SOAP; luego GraphQL y gRPC) |
+| `apps/api` | Java 25 + Spring Boot 4 | 8090 | WS expuestos (REST, SOAP; luego GraphQL y gRPC) |
 | `apps/portal` | React + Vite | 5173 | Portal que consume los WS (vía proxy a la API) |
 
 ## Arrancar
@@ -21,8 +21,8 @@ cd apps/portal && npm install && npm run dev
 
 | Tipo | Contrato | URL local |
 |---|---|---|
-| REST | OpenAPI 3 | http://localhost:8080/v3/api-docs · UI: http://localhost:8080/swagger-ui.html |
-| SOAP | WSDL + XSD | http://localhost:8080/ws/products.wsdl |
+| REST | OpenAPI 3 | http://localhost:8090/v3/api-docs · UI: http://localhost:8090/swagger-ui.html |
+| SOAP | WSDL + XSD | http://localhost:8090/ws/products.wsdl |
 
 ## Flujo de trabajo y versionado
 
