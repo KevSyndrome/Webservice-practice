@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.2.RELEASE</version>
+		<version>4.1.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.practice</groupId>
@@ -42,6 +42,37 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webservices</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-graphql</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-grpc-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>wsdl4j</groupId>
+			<artifactId>wsdl4j</artifactId>
+			<version>1.6.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>3.2.0</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -58,13 +89,61 @@
 			<artifactId>spring-boot-starter-webservices-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-grpc-server-test</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<!-- Genera mensajes y stubs gRPC desde src/main/protobuf/*.proto (versión de protoc la fija Boot) -->
+			<plugin>
+				<groupId>io.github.ascopes</groupId>
+				<artifactId>protobuf-maven-plugin</artifactId>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<!-- Genera las clases JAXB desde el XSD (contract-first) en target/generated-sources -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jaxb2-maven-plugin</artifactId>
+				<version>4.2.0</version>
+				<!-- Cada ejecución con su propio directorio y staleFile para que no se pisen -->
+				<executions>
+					<execution>
+						<id>xjc-products</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.basedir}/src/main/resources/xsd/products.xsd</source>
+							</sources>
+							<packageName>com.practice.api.product.soap.v1</packageName>
+							<outputDirectory>${project.build.directory}/generated-sources/jaxb-products</outputDirectory>
+							<staleFile>${project.build.directory}/jaxb2/.products.stale</staleFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>xjc-countryinfo</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<sourceType>wsdl</sourceType>
+							<sources>
+								<source>${project.basedir}/src/main/resources/wsdl/countryinfo.wsdl</source>
+							</sources>
+							<packageName>com.practice.api.external.countryinfo</packageName>
+							<outputDirectory>${project.build.directory}/generated-sources/jaxb-countryinfo</outputDirectory>
+							<staleFile>${project.build.directory}/jaxb2/.countryinfo.stale</staleFile>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Contrato SOAP (contract-first): de aquí se generan las clases Java y el WSDL -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://practice.com/products/v1"
+           targetNamespace="http://practice.com/products/v1"
+           elementFormDefault="qualified">
+
+    <xs:complexType name="ProductType">
+        <xs:sequence>
+            <xs:element name="id" type="xs:long"/>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="price" type="xs:decimal"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="getProductRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:long"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getProductResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="product" type="tns:ProductType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="listProductsRequest">
+        <xs:complexType>
+            <xs:sequence/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="listProductsResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="product" type="tns:ProductType" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Agregado sin romper v1: operación nueva, nada existente cambia -->
+    <xs:element name="createProductRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="name">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:pattern value=".*\S.*"/>
+                            <xs:maxLength value="100"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+                <xs:element name="price">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                            <xs:minExclusive value="0"/>
+                            <xs:fractionDigits value="2"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="createProductResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="product" type="tns:ProductType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

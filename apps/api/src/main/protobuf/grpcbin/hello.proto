@@ -1,0 +1,20 @@
+// Copia mínima del contrato público de grpcb.in (solo SayHello). Los números de campo deben coincidir
+// con el servidor real: es lo único que viaja por la red, no los nombres.
+syntax = "proto3";
+
+package hello;
+
+option java_multiple_files = true;
+option java_package = "com.practice.api.external.grpcbin";
+
+service HelloService {
+  rpc SayHello(HelloRequest) returns (HelloResponse);
+}
+
+message HelloRequest {
+  string greeting = 1;
+}
+
+message HelloResponse {
+  string reply = 1;
+}

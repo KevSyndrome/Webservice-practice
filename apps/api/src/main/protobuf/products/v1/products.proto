@@ -1,0 +1,35 @@
+// Contrato gRPC: de aquí se generan los mensajes y los stubs (cliente y servidor)
+syntax = "proto3";
+
+package products.v1;
+
+option java_multiple_files = true;
+option java_package = "com.practice.api.product.grpc.v1";
+
+service ProductService {
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+  rpc GetProduct(GetProductRequest) returns (Product);
+  rpc CreateProduct(CreateProductRequest) returns (Product);
+}
+
+message Product {
+  int64 id = 1;
+  string name = 2;
+  // Decimal como texto para no perder centavos (protobuf no tiene decimal)
+  string price = 3;
+}
+
+message ListProductsRequest {}
+
+message ListProductsResponse {
+  repeated Product products = 1;
+}
+
+message GetProductRequest {
+  int64 id = 1;
+}
+
+message CreateProductRequest {
+  string name = 1;
+  string price = 2;
+}

@@ -1,0 +1,61 @@
+@import 'tailwindcss';
+
+@plugin 'daisyui' {
+  themes: false;
+}
+
+/* Tema propio: papel gris azulado, tinta oscura y un color por protocolo */
+@plugin 'daisyui/theme' {
+  name: 'contratos';
+  default: true;
+  color-scheme: light;
+  --color-base-100: #ffffff;
+  --color-base-200: #e9edf1;
+  --color-base-300: #c5ced8;
+  --color-base-content: #1c2530;
+  --color-primary: #1c2530;
+  --color-primary-content: #ffffff;
+  --color-secondary: #5a6675;
+  --color-secondary-content: #ffffff;
+  --color-accent: #1d63a6;
+  --color-accent-content: #ffffff;
+  --color-neutral: #1c2530;
+  --color-neutral-content: #e9edf1;
+  --color-info: #1d63a6;
+  --color-info-content: #ffffff;
+  --color-success: #2c7a4b;
+  --color-success-content: #ffffff;
+  --color-warning: #9a5a08;
+  --color-warning-content: #ffffff;
+  --color-error: #b3261e;
+  --color-error-content: #ffffff;
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.375rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@theme {
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --color-muted: #5a6675;
+}
+
+/* Cada protocolo tiene un color; todo lo que esté dentro de data-protocol lo hereda */
+[data-protocol='REST'] { --protocol: #1d63a6; }
+[data-protocol='SOAP'] { --protocol: #7b3a8c; }
+[data-protocol='GraphQL'] { --protocol: #1b7f6b; }
+[data-protocol='gRPC'] { --protocol: #9a5a08; }
+
+@layer components {
+  .btn-protocol { --btn-color: var(--protocol); --btn-fg: #ffffff; }
+  .badge-protocol { --badge-color: var(--protocol); --badge-fg: #ffffff; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-fill { transition: none; }
+}
