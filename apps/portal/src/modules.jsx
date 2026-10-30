@@ -1,4 +1,5 @@
 import { soapEnvelope, SOAP_HEADERS, SOAP_NS } from './api.js'
+import { Raw } from './Exchange.jsx'
 import { protoProducts, xmlEscape } from './format.js'
 
 const API = 'http://localhost:8090'
@@ -21,15 +22,16 @@ const CITIES = {
 }
 
 export function Table({ rows }) {
-  if (!rows.length) return <p className="hint">Sin resultados.</p>
+  if (!rows.length) return <p className="text-sm text-muted">Sin resultados.</p>
   const columns = Object.keys(rows[0])
+  const align = (c) => (c === 'price' ? 'text-right tabular-nums' : undefined)
   return (
-    <div className="scroll">
-      <table>
+    <div className="overflow-x-auto">
+      <table className="table table-zebra">
         <thead>
           <tr>
             {columns.map((c) => (
-              <th key={c} className={c === 'price' ? 'num' : undefined}>{c}</th>
+              <th key={c} className={align(c)}>{c}</th>
             ))}
           </tr>
         </thead>
@@ -37,7 +39,7 @@ export function Table({ rows }) {
           {rows.map((row, i) => (
             <tr key={i}>
               {columns.map((c) => (
-                <td key={c} className={c === 'price' ? 'num' : undefined}>{String(row[c])}</td>
+                <td key={c} className={align(c)}>{String(row[c])}</td>
               ))}
             </tr>
           ))}
@@ -49,11 +51,11 @@ export function Table({ rows }) {
 
 function Facts({ facts }) {
   return (
-    <table>
+    <table className="table">
       <tbody>
         {Object.entries(facts).map(([label, value]) => (
           <tr key={label}>
-            <th scope="row">{label}</th>
+            <th scope="row" className="w-44 font-medium text-muted">{label}</th>
             <td>{value}</td>
           </tr>
         ))}
@@ -62,14 +64,7 @@ function Facts({ facts }) {
   )
 }
 
-function Upstream({ summary, children }) {
-  return (
-    <details>
-      <summary>{summary}</summary>
-      <pre>{children}</pre>
-    </details>
-  )
-}
+const Upstream = ({ summary, children }) => <Raw title={summary}>{children}</Raw>
 
 function soapProducts(exchange) {
   const doc = new DOMParser().parseFromString(exchange.response.body, 'text/xml')
@@ -224,7 +219,7 @@ export const MODULES = [
           return product ? (
             <Table rows={[product]} />
           ) : (
-            <p className="hint">No existe. GraphQL responde product: null con HTTP 200; para él no es un error.</p>
+            <p className="text-sm text-muted">No existe. GraphQL responde product: null con HTTP 200; para él no es un error.</p>
           )
         },
       },

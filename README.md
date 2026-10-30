@@ -5,7 +5,7 @@ Monorepo para practicar distintos tipos de webservices y sus contratos.
 | App | Stack | Puerto | Descripción |
 |---|---|---|---|
 | `apps/api` | Java 25 + Spring Boot 4.1 + SQLite | 8090 (HTTP), 9095 (gRPC) | WS propios REST, SOAP, GraphQL y gRPC, y cliente de WS externos |
-| `apps/portal` | React + Vite | 5173 | Catálogo para probar cada WS (vía proxy a la API) |
+| `apps/portal` | React + Vite + Tailwind 4 + daisyUI 5 | 5173 | Catálogo para probar cada WS (vía proxy a la API) |
 
 Los productos se guardan en `apps/api/api.db` (SQLite, ignorado en git). Bórralo para volver a los datos iniciales.
 

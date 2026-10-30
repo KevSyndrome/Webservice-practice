@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { call, soapEnvelope, SOAP_HEADERS } from './api.js'
 import { MODULES } from './modules.jsx'
-import Operation from './Operation.jsx'
+import Operation, { API_DOWN } from './Operation.jsx'
 import './styles.css'
 
 const GROUPS = [
@@ -16,6 +16,8 @@ const GROUPS = [
     intro: 'Servicios públicos de terceros. El portal solo habla REST con nuestra API y ella traduce al protocolo de cada proveedor.',
   },
 ]
+
+const PROTOCOLS = ['REST', 'SOAP', 'GraphQL', 'gRPC']
 
 const COMPARISON = [
   ['Formato', 'JSON', 'XML dentro de un Envelope', 'JSON', 'Protobuf (binario)'],
@@ -36,6 +38,8 @@ const WEIGHT_CALLS = [
   ['gRPC', 'Protobuf', { url: '/api/v1/grpc-bridge/products' }],
 ]
 
+const href = (m) => `#/${m.group}/${m.key}`
+
 function useRoute() {
   const [hash, setHash] = useState(location.hash)
   useEffect(() => {
@@ -50,6 +54,21 @@ function useRoute() {
   return MODULES.find((m) => m.group === group && m.key === key)
 }
 
+// shortcut: sondea cada 10 s; si hiciera falta en tiempo real, usar un endpoint de health con SSE
+function useApiOnline() {
+  const [online, setOnline] = useState(null)
+  useEffect(() => {
+    const check = () =>
+      fetch('/api/v1/products', { method: 'HEAD' })
+        .then((res) => setOnline(res.ok))
+        .catch(() => setOnline(false))
+    check()
+    const timer = setInterval(check, 10000)
+    return () => clearInterval(timer)
+  }, [])
+  return online
+}
+
 // Peso real de la misma lista en los cuatro formatos; en gRPC cuenta el mensaje protobuf, no el JSON del puente
 function Weight() {
   const [sizes, setSizes] = useState(null)
@@ -58,79 +77,142 @@ function Weight() {
       .then((exchanges) =>
         setSizes(
           exchanges.map((ex, i) => {
-            const bytes = WEIGHT_CALLS[i][0] === 'gRPC' ? JSON.parse(ex.response.body).responseBytes : ex.response.bytes
-            return { protocol: WEIGHT_CALLS[i][0], format: WEIGHT_CALLS[i][1], bytes }
+            const [protocol, format] = WEIGHT_CALLS[i]
+            const bytes = protocol === 'gRPC' ? JSON.parse(ex.response.body).responseBytes : ex.response.bytes
+            return { protocol, format, bytes }
           }),
         ),
       )
       .catch(() => setSizes([]))
   }, [])
-  if (!sizes) return null
-  if (!sizes.length) return <p className="error">La API no responde en el puerto 8090. Arráncala con ./mvnw spring-boot:run en apps/api.</p>
+  if (!sizes) return <span className="loading loading-dots loading-md" aria-label="Midiendo" />
+  if (!sizes.length) return <div className="alert alert-error alert-soft max-w-3xl">{API_DOWN}</div>
   const max = Math.max(...sizes.map((s) => s.bytes))
   return (
-    <figure className="weight" aria-label="Tamaño de la misma lista de productos en cada formato">
+    <figure className="max-w-3xl" aria-label="Tamaño de la misma lista de productos en cada formato">
       {sizes.map(({ protocol, format, bytes }) => (
-        <div key={protocol} className="bar" data-protocol={protocol}>
-          <span className="bar-label">{protocol}</span>
-          <span className="bar-track">
-            <span className="bar-fill" style={{ width: `${(bytes / max) * 100}%` }} />
+        <div key={protocol} data-protocol={protocol} className="mb-2.5 grid grid-cols-[4.5rem_1fr] items-center gap-x-4 sm:grid-cols-[4.5rem_1fr_10rem]">
+          <span className="font-semibold text-(--protocol)">{protocol}</span>
+          <span className="h-6 bg-base-100">
+            <span className="bar-fill block h-full bg-(--protocol) transition-[width] duration-500" style={{ width: `${(bytes / max) * 100}%` }} />
           </span>
-          <span className="bar-value">
+          <span className="col-start-2 text-sm tabular-nums sm:col-start-auto sm:text-base">
             {bytes} bytes de {format}
           </span>
         </div>
       ))}
-      <figcaption>La misma lista de productos medida en vivo. El sobre SOAP pesa más que el dato; protobuf casi no tiene envoltura.</figcaption>
+      <figcaption className="mt-2 text-sm text-muted">
+        La misma lista de productos medida en vivo. El sobre SOAP pesa más que el dato; protobuf casi no tiene envoltura.
+      </figcaption>
     </figure>
   )
 }
 
-function ModuleCard({ module }) {
+function Sidebar({ current }) {
   return (
-    <a className="card" data-protocol={module.protocol} href={`#/${module.group}/${module.key}`}>
-      <span className="tag">{module.protocol}</span>
-      <h3>{module.title}</h3>
-      <p>{module.summary}</p>
-      <span className="card-meta">
-        {module.operations.length === 1 ? '1 operación' : `${module.operations.length} operaciones`}
-      </span>
-    </a>
+    <aside className="flex min-h-full w-72 flex-col bg-base-100">
+      <a href="#/" className="px-6 pt-6 pb-4 text-lg font-semibold tracking-tight">
+        Portal de webservices
+      </a>
+      <ul className="menu w-full gap-0.5 px-3">
+        <li>
+          <a href="#/" className={current ? undefined : 'menu-active'}>
+            Inicio
+          </a>
+        </li>
+        {GROUPS.map((group) => (
+          <li key={group.key}>
+            <h2 className="menu-title mt-3">{group.title}</h2>
+            <ul>
+              {MODULES.filter((m) => m.group === group.key).map((m) => (
+                <li key={m.key} data-protocol={m.protocol}>
+                  <a href={href(m)} className={current === m ? 'menu-active' : undefined} aria-current={current === m ? 'page' : undefined}>
+                    <span className="badge badge-xs badge-protocol w-16 shrink-0">{m.protocol}</span>
+                    {m.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  )
+}
+
+function Navbar({ module, online }) {
+  return (
+    <nav className="navbar sticky top-0 z-10 gap-2 border-b border-base-300 bg-base-200/90 px-4 backdrop-blur lg:px-8">
+      <label htmlFor="sidebar" className="btn btn-square btn-ghost lg:hidden" aria-label="Abrir menú">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="size-6 stroke-current" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </label>
+      <div className="breadcrumbs flex-1 text-sm">
+        <ul>
+          <li>
+            <a href="#/">Inicio</a>
+          </li>
+          {module && <li>{GROUPS.find((g) => g.key === module.group).title}</li>}
+          {module && <li className="font-medium">{module.title}</li>}
+        </ul>
+      </div>
+      {online !== null && (
+        <span className={`badge badge-soft ${online ? 'badge-success' : 'badge-error'}`} title="Estado de la API en el puerto 8090">
+          <span className={`status ${online ? 'status-success' : 'status-error'}`} />
+          {online ? 'API en línea' : 'API sin respuesta'}
+        </span>
+      )}
+    </nav>
   )
 }
 
 function Home() {
   return (
     <>
-      <header className="hero">
-        <h1>Mismo dato, distinto contrato</h1>
-        <p>Cuatro formas de exponer y consumir un webservice. Entra a cada módulo para probar sus operaciones y ver la petición y respuesta tal como viajan.</p>
+      <header>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Mismo dato, distinto contrato</h1>
+        <p className="mt-3 mb-8 max-w-2xl text-lg text-muted">
+          Cuatro formas de exponer y consumir un webservice. Entra a cada módulo para probar sus operaciones y ver la petición y respuesta tal como
+          viajan.
+        </p>
         <Weight />
       </header>
 
       {GROUPS.map((group) => (
-        <section key={group.key}>
-          <h2>{group.title}</h2>
-          <p className="hint">{group.intro}</p>
-          <div className="cards">
+        <section key={group.key} className="mt-14">
+          <h2 className="text-2xl font-semibold">{group.title}</h2>
+          <p className="mt-1 max-w-3xl text-muted">{group.intro}</p>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {MODULES.filter((m) => m.group === group.key).map((m) => (
-              <ModuleCard key={m.key} module={m} />
+              <a key={m.key} href={href(m)} data-protocol={m.protocol} className="card group border-t-4 border-(--protocol) bg-base-100">
+                <div className="card-body gap-2">
+                  <span className="badge badge-sm badge-protocol">{m.protocol}</span>
+                  <h3 className="card-title text-base group-hover:underline group-hover:decoration-(--protocol) group-hover:underline-offset-4">
+                    {m.title}
+                  </h3>
+                  <p className="text-sm text-muted">{m.summary}</p>
+                  <span className="text-sm font-medium text-(--protocol)">
+                    {m.operations.length === 1 ? '1 operación' : `${m.operations.length} operaciones`}
+                  </span>
+                </div>
+              </a>
             ))}
           </div>
         </section>
       ))}
 
-      <section>
-        <h2>Diferencias entre los cuatro</h2>
-        <div className="scroll">
-          <table className="comparison">
+      <section className="mt-14">
+        <h2 className="text-2xl font-semibold">Diferencias entre los cuatro</h2>
+        <div className="mt-5 overflow-x-auto bg-base-100">
+          <table className="table">
             <thead>
               <tr>
                 <th scope="col">
-                  <span className="visually-hidden">Aspecto</span>
+                  <span className="sr-only">Aspecto</span>
                 </th>
-                {['REST', 'SOAP', 'GraphQL', 'gRPC'].map((p) => (
-                  <th key={p} scope="col" data-protocol={p}>
+                {PROTOCOLS.map((p) => (
+                  <th key={p} scope="col" data-protocol={p} className="border-b-2 border-(--protocol) text-(--protocol)">
                     {p}
                   </th>
                 ))}
@@ -139,7 +221,9 @@ function Home() {
             <tbody>
               {COMPARISON.map(([aspect, ...cells]) => (
                 <tr key={aspect}>
-                  <th scope="row">{aspect}</th>
+                  <th scope="row" className="whitespace-nowrap font-medium text-muted">
+                    {aspect}
+                  </th>
                   {cells.map((cell, i) => (
                     <td key={i}>{cell}</td>
                   ))}
@@ -154,32 +238,28 @@ function Home() {
 }
 
 function ModulePage({ module }) {
-  const group = GROUPS.find((g) => g.key === module.group)
   return (
     <div data-protocol={module.protocol}>
-      <nav>
-        <a href="#/">Todas las APIs</a> / {group.title}
-      </nav>
-      <header className="module-header">
-        <span className="tag">{module.protocol}</span>
-        <h1>{module.title}</h1>
-        <p>{module.summary}</p>
-        <p className="contract">
+      <header className="flex flex-col gap-3 border-b-4 border-(--protocol) pb-8">
+        <span className="badge badge-protocol">{module.protocol}</span>
+        <h1 className="text-4xl font-semibold tracking-tight">{module.title}</h1>
+        <p className="max-w-2xl text-lg text-muted">{module.summary}</p>
+        <p className="text-sm">
           {module.contract.href ? (
-            <a href={module.contract.href} target="_blank" rel="noreferrer">
+            <a href={module.contract.href} target="_blank" rel="noreferrer" className="link text-(--protocol)">
               {module.contract.label}
             </a>
           ) : (
             <>
-              {module.contract.label}: <code>{module.contract.path}</code>
+              {module.contract.label}: <code className="font-mono">{module.contract.path}</code>
             </>
           )}
         </p>
         {module.bridge && (
-          <p className="hint">
-            El navegador no puede hablar gRPC directamente. El portal llama a un puente HTTP en la API, que hace la llamada gRPC real y
-            devuelve los mensajes protobuf que se enviaron y recibieron.
-          </p>
+          <div role="note" className="alert alert-soft max-w-3xl text-sm">
+            El navegador no puede hablar gRPC directamente. El portal llama a un puente HTTP en la API, que hace la llamada gRPC real y devuelve los
+            mensajes protobuf que se enviaron y recibieron.
+          </div>
         )}
       </header>
       {module.operations.map((op) => (
@@ -191,5 +271,25 @@ function ModulePage({ module }) {
 
 export default function App() {
   const module = useRoute()
-  return <main>{module ? <ModulePage key={`${module.group}/${module.key}`} module={module} /> : <Home />}</main>
+  const online = useApiOnline()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  // En celular el sidebar se cierra al navegar
+  useEffect(() => setMenuOpen(false), [module])
+
+  return (
+    <div className="drawer lg:drawer-open">
+      <input id="sidebar" type="checkbox" className="drawer-toggle" checked={menuOpen} onChange={(e) => setMenuOpen(e.target.checked)} />
+      <div className="drawer-content min-h-screen bg-base-200">
+        <Navbar module={module} online={online} />
+        <main className="mx-auto max-w-6xl px-4 py-8 pb-20 lg:px-8 lg:py-12">
+          {module ? <ModulePage key={href(module)} module={module} /> : <Home />}
+        </main>
+      </div>
+      <div className="drawer-side z-20 border-r border-base-300">
+        <label htmlFor="sidebar" aria-label="Cerrar menú" className="drawer-overlay" />
+        <Sidebar current={module} />
+      </div>
+    </div>
+  )
 }
