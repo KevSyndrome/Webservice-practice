@@ -3,7 +3,7 @@ import { call } from './api.js'
 import Exchange from './Exchange.jsx'
 import { problemOf } from './format.js'
 
-export const API_DOWN = 'La API no responde en el puerto 8090. Arráncala con ./mvnw spring-boot:run en apps/api.'
+export const API_DOWN = 'La API no responde. En local, arráncala con ./mvnw spring-boot:run en apps/api.'
 
 function Field({ field, value, onChange }) {
   const props = { value, onChange: (e) => onChange(e.target.value) }

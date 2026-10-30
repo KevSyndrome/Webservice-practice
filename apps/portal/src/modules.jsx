@@ -2,7 +2,6 @@ import { soapEnvelope, SOAP_HEADERS, SOAP_NS } from './api.js'
 import { Raw } from './Exchange.jsx'
 import { protoProducts, xmlEscape } from './format.js'
 
-const API = 'http://localhost:8090'
 const JSON_HEADERS = { 'Content-Type': 'application/json', Accept: 'application/json' }
 
 const json = (exchange) => JSON.parse(exchange.response.body)
@@ -117,7 +116,7 @@ export const MODULES = [
     protocol: 'REST',
     title: 'Productos REST',
     summary: 'Cada producto tiene su URL y se opera con verbos HTTP. Responde JSON.',
-    contract: { label: 'Contrato OpenAPI en Swagger UI', href: `${API}/swagger-ui.html` },
+    contract: { label: 'Contrato OpenAPI en Swagger UI', href: '/swagger-ui.html' },
     operations: [
       {
         title: 'Listar productos',
@@ -157,7 +156,7 @@ export const MODULES = [
     protocol: 'SOAP',
     title: 'Productos SOAP',
     summary: 'Un solo endpoint; la operación va dentro de un sobre XML validado contra el XSD.',
-    contract: { label: 'Contrato WSDL', href: `${API}/ws/products.wsdl` },
+    contract: { label: 'Contrato WSDL', href: '/ws/products.wsdl' },
     operations: [
       {
         title: 'Listar productos',
@@ -195,7 +194,7 @@ export const MODULES = [
     protocol: 'GraphQL',
     title: 'Productos GraphQL',
     summary: 'Un solo endpoint; el cliente escribe la consulta y elige qué campos recibir.',
-    contract: { label: 'Esquema en el explorador GraphiQL', href: `${API}/graphiql` },
+    contract: { label: 'Esquema en el explorador GraphiQL', href: '/graphiql' },
     operations: [
       {
         title: 'Consultar productos',
