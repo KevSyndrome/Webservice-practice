@@ -2,6 +2,9 @@ package com.practice.api.external;
 
 import java.time.Duration;
 
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,9 +40,29 @@ public class ExternalConfig {
 
 	@Bean
 	public OpenMeteoClient openMeteoClient(@Value("${external.openmeteo.url}") String url) {
+		return new OpenMeteoClient(restClient(url));
+	}
+
+	@Bean
+	public CountriesGraphqlClient countriesGraphqlClient(@Value("${external.countries-graphql.url}") String url) {
+		return new CountriesGraphqlClient(restClient(url));
+	}
+
+	// TLS (el valor por defecto de gRPC). El canal es perezoso: no conecta hasta la primera llamada
+	@Bean(destroyMethod = "shutdownNow")
+	public ManagedChannel grpcBinChannel(@Value("${external.grpcbin.address}") String address) {
+		return ManagedChannelBuilder.forTarget(address).useTransportSecurity().build();
+	}
+
+	@Bean
+	public GrpcBinClient grpcBinClient(ManagedChannel grpcBinChannel) {
+		return new GrpcBinClient(grpcBinChannel);
+	}
+
+	private static RestClient restClient(String url) {
 		JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory();
 		factory.setReadTimeout(TIMEOUT);
-		return new OpenMeteoClient(RestClient.builder().baseUrl(url).requestFactory(factory).build());
+		return RestClient.builder().baseUrl(url).requestFactory(factory).build();
 	}
 
 }
